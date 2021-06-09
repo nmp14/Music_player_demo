@@ -7,6 +7,10 @@ const progress = document.querySelector(".progress");
 const progressContainer = document.querySelector(".progress-container");
 const title = document.querySelector("#title");
 const cover = document.querySelector("#music-cover");
+const durationEl = document.getElementById("duration");
+const currentTimeEl = document.getElementById("current-time");
+const volumeRange = document.getElementById("volume-range");
+const muteBtn = document.getElementById("mute-btn");
 
 // Song titles
 const songs = ["Bios", "In_My_Remains", "All_Around_Me"];
@@ -18,7 +22,14 @@ function loadSong(song) {
     title.textContent = song;
     audio.src = `./music/${song}.mp3`;
     cover.src = `./images/${song}.jpeg`;
-    console.log("dwad");
+
+    // Set text of durationEl to the minutes and seconds of song. MM:SS
+    audio.addEventListener("canplay", () => {
+        const duration = audio.duration;
+        const minutes = parseInt(duration / 60);
+        const seconds = parseInt(duration % 60);
+        durationEl.textContent = `${minutes}:${seconds}`;
+    });
 };
 
 function playSong() {
@@ -55,10 +66,18 @@ function nextSong() {
     playSong();
 };
 
+// Updates the width of the progress bar and time text
 function updateProgress(e) {
     const { duration, currentTime } = e.srcElement;
     const progressPercent = (currentTime / duration) * 100;
     progress.style.width = `${progressPercent}%`;
+
+    const minutes = parseInt(currentTime / 60);
+    let seconds = parseInt(currentTime % 60);
+
+    if (seconds < 10) seconds = `0${seconds}`;
+
+    currentTimeEl.textContent = `${minutes}:${seconds}`;
 };
 
 function setProgress(e) {
@@ -66,6 +85,22 @@ function setProgress(e) {
     const clickX = e.offsetX;
     const duration = audio.duration;
     audio.currentTime = (clickX / width) * duration;
+};
+
+function changeVolume(e) {
+    audio.volume = (e.target.value / 100);
+};
+
+function mute(e) {
+    e.preventDefault();
+
+    if (!audio.muted) {
+        audio.muted = true;
+        muteBtn.textContent = "Unmute";
+    } else {
+        audio.muted = false;
+        muteBtn.textContent = "Mute";
+    }
 };
 
 playBtn.addEventListener("click", () => {
@@ -88,3 +123,7 @@ audio.addEventListener("timeupdate", updateProgress);
 progressContainer.addEventListener("click", setProgress);
 
 audio.addEventListener("ended", nextSong);
+
+// Change volume or mute
+volumeRange.addEventListener("input", changeVolume);
+muteBtn.addEventListener("click", mute);
